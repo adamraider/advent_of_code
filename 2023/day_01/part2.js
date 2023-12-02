@@ -31,28 +31,7 @@ const WORD_TO_N = {
   9: "9",
 };
 
-const isNumber = (char) => char >= "0" && char <= "9";
 const reverseString = (str) => str.split("").reverse().join("");
-
-function part1(input) {
-  return input.split("\n").reduce((acc, line) => {
-    let firstChar, lastChar;
-    for (const char of line) {
-      if (isNumber(char)) {
-        firstChar = char;
-        break;
-      }
-    }
-    for (let i = line.length - 1; i >= 0; i--) {
-      const char = line[i];
-      if (isNumber(char)) {
-        lastChar = char;
-        break;
-      }
-    }
-    return acc + parseInt(firstChar + lastChar);
-  }, 0);
-}
 
 function part2(input) {
   return input.split("\n").reduce((acc, line) => {
