@@ -7,43 +7,44 @@ const input = fs.readFileSync(path.resolve(__dirname, "./input.txt"), {
 
 const lines = input.split("\n");
 
-const matchCounts = lines.reduce((matchCounts, cardString, cardNumber) => {
-  const score = countMatches(parseCard(cardString));
-  matchCounts.set(cardNumber + 1, score);
-  return matchCounts;
-}, new Map());
-
-let totalCardNumber = 0;
-
-function countRecursive(cardNumber) {
-  totalCardNumber++;
-  for (
-    let i = cardNumber + 1;
-    i <= cardNumber + matchCounts.get(cardNumber);
-    i++
-  ) {
-    countRecursive(i);
-  }
-}
-
-lines.forEach((_, index) => void countRecursive(index + 1));
+const cardScores = lines.map((cardString) => scoreCard(parseCard(cardString)));
+const totalCardNumber = cardScores.reduce(
+  (total, _, index) => total + countRecursive(index),
+  0
+);
 
 console.log(totalCardNumber);
 
-function countMatches({ winSet, currentSet }) {
-  let score = 0;
-  winSet.forEach((winner) => {
-    if (currentSet.has(winner)) {
-      score++;
-    }
-  });
-  return score;
+/**
+ * Recursively counts the card clones.
+ */
+function countRecursive(cardIndex, n = 0) {
+  for (let i = cardIndex + 1; i <= cardIndex + cardScores[cardIndex]; i++) {
+    n += countRecursive(i);
+  }
+
+  // Add one to count the original card.
+  return n + 1;
 }
 
+/**
+ * Counts how many winning numbers the card has.
+ */
+function scoreCard({ winSet, numbers }) {
+  return Array.from(winSet).reduce(
+    (total, winner) => (numbers.has(winner) ? total + 1 : total),
+    0
+  );
+}
+
+/**
+ * Parses a string representation of a card into two Sets representing
+ * the winning numbers and the actual numbers.
+ */
 function parseCard(cardString) {
   cardString = cardString.split(/\:\s+/)[1];
   const [winNums, currentNums] = cardString.split(/\s+\|\s+/);
   const winSet = new Set(winNums.split(/\s+/));
-  const currentSet = new Set(currentNums.split(/\s+/));
-  return { winSet, currentSet };
+  const numbers = new Set(currentNums.split(/\s+/));
+  return { winSet, numbers };
 }
