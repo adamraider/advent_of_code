@@ -13,23 +13,23 @@ const isSymbol = (char) => (char > "9" || char < "0") && char !== ".";
 
 lines.forEach((line, lineIndex) => {
   line.split("").forEach((char, charIndex) => {
-    if (isSymbol(char)) {
-      checkAdjacent(lineIndex, charIndex);
-    }
+    if (isSymbol(char)) checkAdjacent(lineIndex, charIndex);
   });
 });
 
 function checkAdjacent(lineIndex, charIndex) {
-  const checked = new Array(lines.length)
-    .fill(0)
-    .map(() => new Array(lines[0].length).fill(0));
+  const checked = new Map();
   const gearNumbers = [];
 
   [-1, 0, 1].forEach((i) => {
+    const currentLine = lineIndex + i;
+    checked.set(currentLine, new Set());
     [-1, 0, 1].forEach((j) => {
+      const currentChar = charIndex + j;
       if (i === 0 && j === 0) return;
-      if (checked[lineIndex + i][charIndex + j]) return;
-      const number = scanHorizontally(lineIndex + i, charIndex + j, checked);
+      if (checked.get(currentLine)?.has(currentChar)) return;
+
+      const number = scanHorizontally(currentLine, currentChar, checked);
       if (number) gearNumbers.push(parseInt(number));
     });
   });
@@ -42,7 +42,8 @@ function checkAdjacent(lineIndex, charIndex) {
 function scanHorizontally(l, charIndex, checked) {
   if (!isNumber(lines[l][charIndex])) return;
 
-  checked[l][charIndex] = 1;
+  checked.get(l).add(charIndex);
+
   let number = "" + lines[l][charIndex];
   number = lines[l][charIndex];
 
@@ -50,7 +51,7 @@ function scanHorizontally(l, charIndex, checked) {
 
   // scan right
   while (isNumber(lines[l][scanCharIndex])) {
-    checked[l][scanCharIndex] = 1;
+    checked.get(l).add(scanCharIndex);
     number += lines[l][scanCharIndex];
     scanCharIndex++;
   }
@@ -58,7 +59,7 @@ function scanHorizontally(l, charIndex, checked) {
   // scan left
   scanCharIndex = charIndex - 1;
   while (isNumber(lines[l][scanCharIndex])) {
-    checked[l][scanCharIndex] = 1;
+    checked.get(l).add(scanCharIndex);
     number = lines[l][scanCharIndex] + number;
     scanCharIndex--;
   }
@@ -66,4 +67,4 @@ function scanHorizontally(l, charIndex, checked) {
 }
 
 const gearRatioSum = gearRatios.reduce((sum, n) => sum + n, 0);
-console.log(gearRatioSum);
+console.log(gearRatioSum === 91622824);

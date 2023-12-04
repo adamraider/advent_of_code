@@ -61,4 +61,4 @@ function scanHorizontally(l, charIndex) {
 }
 
 const partSum = partNumbers.reduce((sum, n) => sum + n, 0);
-console.log(partSum);
+console.log(partSum === 560670);
