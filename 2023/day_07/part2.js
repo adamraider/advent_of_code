@@ -31,8 +31,6 @@ const TYPES = {
   HIGH_CARD: 6,
 };
 
-const lines = input.split("\n").filter(Boolean).map(parseLine);
-
 function parseLine(line) {
   const [handStr, bidStr] = line.split(" ");
   const rating = rateHand(handStr);
@@ -48,8 +46,7 @@ function rateHand(handStr) {
   }, {});
   const jokers = map.J || 0;
   delete map.J;
-  const cardsUnique = Object.keys(map);
-  const values = Object.values(map);
+  const values = Object.values(map).sort((a, b) => b - a);
 
   if (values.some((n) => n + jokers === 5) || jokers === 5) {
     return TYPES.FIVE_OF_A_KIND;
@@ -59,7 +56,10 @@ function rateHand(handStr) {
     return TYPES.FOUR_OF_A_KIND;
   }
 
-  if (isFullHouse(values, jokers)) {
+  if (
+    values[0] + jokers >= 3 &&
+    values[1] + Math.max(0, jokers - (3 - values[0])) >= 2
+  ) {
     return TYPES.FULL_HOUSE;
   }
 
@@ -67,7 +67,10 @@ function rateHand(handStr) {
     return TYPES.THREE_OF_A_KIND;
   }
 
-  if (isTwoPair(values, jokers)) {
+  if (
+    values[0] + jokers >= 2 &&
+    values[1] + Math.max(0, jokers - (2 - values[0])) >= 2
+  ) {
     return TYPES.TWO_PAIR;
   }
 
@@ -75,41 +78,28 @@ function rateHand(handStr) {
     return TYPES.ONE_PAIR;
   }
 
-  if (cardsUnique.length === 5) {
+  if (values.length === 5) {
     return TYPES.HIGH_CARD;
   }
 
   throw new Error("Unreachable");
 }
 
-function isFullHouse(values, jokers) {
-  const vals = values.sort((a, b) => b - a);
-  return (
-    vals[0] + jokers >= 3 && vals[1] + Math.max(0, jokers - (3 - vals[0])) >= 2
-  );
-}
-
-function isTwoPair(values, jokers) {
-  const vals = values.sort((a, b) => b - a);
-  return (
-    vals[0] + jokers >= 2 && vals[1] + Math.max(0, jokers - (2 - vals[0])) >= 2
-  );
-}
-
-const rated = lines.sort((a, b) => {
-  if (a.rating === b.rating) {
-    for (let i = 0; i < a.handStr.length; i++) {
-      const aC = a.handStr[i];
-      const bC = b.handStr[i];
-      if (aC === bC) continue;
-      const a2 = CARDS[aC];
-      const b2 = CARDS[bC];
-      return a2 - b2;
+const sum = input
+  .split("\n")
+  .map(parseLine)
+  .sort((a, b) => {
+    if (a.rating === b.rating) {
+      for (let i = 0; i < a.handStr.length; i++) {
+        const aC = a.handStr[i];
+        const bC = b.handStr[i];
+        if (aC === bC) continue;
+        return CARDS[aC] - CARDS[bC];
+      }
     }
-  }
-  return b.rating - a.rating;
-});
+    return b.rating - a.rating;
+  })
+  .map((hand, rank) => hand.bid * (rank + 1))
+  .reduce((sum, v) => sum + v, 0);
 
-const sum = rated.map((h, i) => h.bid * (i + 1)).reduce((sum, v) => sum + v, 0);
-
-console.log(rated, sum);
+console.log(sum);
